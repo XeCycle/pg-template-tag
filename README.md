@@ -1,4 +1,5 @@
 #pg-template-tag
+[![Build Status](https://travis-ci.org/XeCycle/pg-template-tag.svg)](https://travis-ci.org/XeCycle/pg-template-tag)
 
 Build a { text, values } object for use with
 [brianc/node-postgres](https://github.com/brianc/node-postgres/).
