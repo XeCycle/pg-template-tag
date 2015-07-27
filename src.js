@@ -20,7 +20,7 @@ class SqlLiteral {
   }
   get values() {
     return this._values.reduce((prev, curr) => prev.concat(
-      curr instanceof SqlLiteral ? curr.values : curr
+      curr instanceof SqlLiteral ? curr.values : [curr]
     ), []);
   }
 }

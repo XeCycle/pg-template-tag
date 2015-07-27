@@ -13,4 +13,9 @@ describe("pg-template-tag", function() {
     assert.equal(literal.text, "foo bar $1 $2 baz foobar $3 $4");
     assert.deepEqual(literal.values, [1, 2, 3, 4]);
   });
+
+  it("does not interpolate arrays into values array", function() {
+    var literal = SQL`${[1, 2, 3]}`;
+    assert.deepEqual(literal.values, [[1, 2, 3]]);
+  });
 });
