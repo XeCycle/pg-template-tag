@@ -7,8 +7,19 @@ Supports nesting.
 
 ## Example
 
+Write the query as-is inside template literals, use `${}` interpolation to
+supply values.
+
 ```javascript
 var SQL = require("pg-template-tag");
 connection.query(SQL`select name from user where id=${id}`);
 connection.query(SQL`select value from record where ${ lower===null ? SQL`true` : SQL`time > ${lower}`}`);
+```
+
+Pieces are reusable, so you can:
+
+```javascript
+var fields = SQL`name, time, score, history_avg(score) as "scoreAvg"`;
+connection.query(SQL`select ${fields} from scores where time > current_date`);
+connection.query(SQL`select ${fields} from scores where score > ${minScore}`);
 ```
