@@ -30,7 +30,8 @@ function SQLTag(parts, ...values) {
   return new SqlLiteral(parts, values);
 }
 
-SQLTag.join = function(array, separator) {
+export
+function join(array, separator) {
   separator = separator || ",";
   let parts = [""];
   for (let i = 0; i < array.length-1; i++) {
@@ -38,4 +39,4 @@ SQLTag.join = function(array, separator) {
   }
   parts.push("");
   return new SqlLiteral(parts, array);
-};
+}

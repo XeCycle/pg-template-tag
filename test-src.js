@@ -1,4 +1,4 @@
-import SQL from "./";
+import {default as SQL, join} from "./";
 import assert from "assert";
 
 describe("pg-template-tag", function() {
@@ -20,18 +20,18 @@ describe("pg-template-tag", function() {
   });
 
   it("joins SQL instances", function () {
-    var literal = SQL.join([SQL`foo`, SQL`bar ${123}`, SQL`${456}`], " sep ");
+    var literal = join([SQL`foo`, SQL`bar ${123}`, SQL`${456}`], " sep ");
     assert.equal(literal.text, "foo sep bar $1 sep $2");
     assert.deepEqual(literal.values, [123, 456]);
   });
 
   it("joins with default comma", function () {
-    var literal = SQL.join([SQL`foo`, SQL`bar`]);
+    var literal = join([SQL`foo`, SQL`bar`]);
     assert.equal(literal.text, "foo,bar");
   });
 
   it("joins other types", function () {
-    var literal = SQL.join([1, 'hello', [1, 2, 3]]);
+    var literal = join([1, 'hello', [1, 2, 3]]);
     assert.equal(literal.text, "$1,$2,$3");
     assert.deepEqual(literal.values, [1, 'hello', [1, 2, 3]]);
   });
