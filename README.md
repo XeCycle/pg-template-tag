@@ -23,3 +23,15 @@ var fields = SQL`name, time, score, history_avg(score) as "scoreAvg"`;
 connection.query(SQL`select ${fields} from scores where time > current_date`);
 connection.query(SQL`select ${fields} from scores where score > ${minScore}`);
 ```
+
+There's a `.join` function analog to `Array.prototype.join` to join together literals.
+
+```javascript
+function filterUsers(filter) {
+  var conditions = [];
+  if (filter.email) conditions.push(SQL`email like ${filter.email}`);
+  if (filter.minAge) conditions.push(SQL`age > ${filter.minAge}`);
+  if (filter.maxAge) conditions.push(SQL`age < ${filter.maxAge}`);
+  return connection.query(SQL`select * from users where ${SQL.join(conditions, ' and ')}`);
+}
+```
