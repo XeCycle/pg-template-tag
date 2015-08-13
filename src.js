@@ -29,3 +29,13 @@ export default
 function SQLTag(parts, ...values) {
   return new SqlLiteral(parts, values);
 }
+
+SQLTag.join = function(array, separator) {
+  separator = separator || ",";
+  let parts = [""];
+  for (let i = 0; i < array.length-1; i++) {
+    parts.push(separator);
+  }
+  parts.push("");
+  return new SqlLiteral(parts, array);
+};
