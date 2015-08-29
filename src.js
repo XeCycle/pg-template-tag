@@ -24,20 +24,14 @@ class SqlLiteral {
     ), []);
   }
   concat(...literals) {
-    let all = [this, ...literals];
     // concatenate all parts arrays combining first and last element of each
-    let combinedParts = all.map((lit) => lit._parts)
-      .reduce((total, next, i) => {
-        if (i > 0) {
-          let [head, ...rest] = next;
-          total[total.length - 1] += head;
-          return total.concat(rest);
-        } else {
-          return total.concat(next)
-        }
-      }, []);
-    let combinedValues = Array.prototype.concat(...all.map((lit) => lit._values));
-    return new SqlLiteral(combinedParts, combinedValues);
+    return [this, ...literals].reduce((result, next, i) => {
+      let [head, ...rest] = next._parts;
+      result._parts[result._parts.length - 1] += head;
+      result._parts = result._parts.concat(rest);
+      result._values = result._values.concat(next._values);
+      return result;
+    }, new SqlLiteral([''], []));
   }
   split(pattern) {
     return this._parts
@@ -55,7 +49,7 @@ class SqlLiteral {
             splitted[splitted.length - 1]._values.push(value);
           }
         }
-        return splitted.concat(splittedPart.map((part) => new SqlLiteral([ part ], [])));
+        return splitted.concat(splittedPart.map(part => new SqlLiteral([ part ], [])));
       }, []);
   }
 }
