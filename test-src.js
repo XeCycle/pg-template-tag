@@ -96,4 +96,12 @@ describe("pg-template-tag", function() {
     assert.equal(splitted[3].text, "bar");
     assert.deepEqual(splitted[3].values, []);
   });
+
+  it("splits deeply nested literals", function () {
+    var splitted = SQL`a;b${SQL`;c;${SQL`d;e;f`};g;`}h;i`.split(";");
+    assert.strictEqual(splitted.length, 9);
+    var texts = splitted.map(x => x.text);
+    assert.deepEqual(texts, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']);
+    assert(splitted.every(x => x.values.length === 0), 'shouldn\'t have values');
+  });
 });

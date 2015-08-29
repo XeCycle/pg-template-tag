@@ -45,12 +45,13 @@ class SqlLiteral {
             let [first, ...rest] = value.split(pattern);
             splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(first);
             splitted = splitted.concat(rest);
+            splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(new SqlLiteral([head], []));
           } else {
-            splitted[splitted.length - 1]._parts.push(head);
-            splitted[splitted.length - 1]._values.push(value);
+            splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(new SqlLiteral(['', head], [value]));
           }
         }
-        return splitted.concat(splittedPart.map(part => new SqlLiteral([ part ], [])));
+        splitted = splitted.concat(splittedPart.map(part => new SqlLiteral([ part ], [])));
+        return splitted;
       }, []);
   }
 }
