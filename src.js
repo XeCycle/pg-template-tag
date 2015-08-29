@@ -24,8 +24,9 @@ class SqlLiteral {
     ), []);
   }
   concat(...literals) {
-    // concatenate all parts arrays combining first and last element of each
-    return [this, ...literals].reduce((result, next, i) => {
+    // concatenate all parts arrays combining first part of each one with the
+    // last part of the previous one
+    return [this, ...literals].reduce((result, next) => {
       let [head, ...rest] = next._parts;
       result._parts[result._parts.length - 1] += head;
       result._parts = result._parts.concat(rest);
