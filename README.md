@@ -24,6 +24,23 @@ connection.query(SQL`select ${fields} from scores where time > current_date`);
 connection.query(SQL`select ${fields} from scores where score > ${minScore}`);
 ```
 
+Use `.split` to split literals on a pattern
+
+```javascript
+function multi(connection, sqlStr) {
+  return sqlStr.split(';').map((sqlStmt) => connection.query(sqlStmt));
+}
+
+multi(SQL`
+  begin;
+  lock table users in share row exclusive mode;
+  insert into users (email)
+    select ${email}
+    where not exists (select * from users where email = ${email});
+  commit;
+`)
+```
+
 There's a `.join` function analog to `Array.prototype.join` to join together literals.
 
 ```javascript
