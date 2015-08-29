@@ -1,4 +1,4 @@
-import {default as SQL, join, split} from "./";
+import {default as SQL, join} from "./";
 import assert from "assert";
 
 describe("pg-template-tag", function() {
