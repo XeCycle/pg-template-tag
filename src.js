@@ -1,3 +1,5 @@
+import "es6-shim";
+
 class SqlLiteral {
   constructor(parts, values) {
     this._parts = parts;
@@ -33,8 +35,7 @@ function SQLTag(parts, ...values) {
 function setToIdMap(set) {
   var map = new Map();
   var i = 0;
-  for (var value of set)
-    map.set(value, ++i);
+  set.forEach(value => map.set(value, ++i));
   return map;
 }
 
