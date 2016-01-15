@@ -30,6 +30,58 @@ function SQLTag(parts, ...values) {
   return new SqlLiteral(parts, values);
 }
 
+function setToIdMap(set) {
+  var map = new Map();
+  var i = 0;
+  for (var value of set)
+    map.set(value, ++i);
+  return map;
+}
+
+class DedupSqlLiteral {
+  constructor(parts, values) {
+    this._parts = parts;
+    this._values = values;
+  }
+
+  getText(valueIdMap) {
+    return this._parts.reduce((prev, curr, i) => {
+      var child = this._values[i-1];
+      var mid;
+      if (child instanceof DedupSqlLiteral) {
+        mid = child.getText(valueIdMap);
+      }
+      else mid = "$" + valueIdMap.get(child);
+      return prev+mid+curr;
+    });
+  }
+
+  collectValues() {
+    if (this._valueSet)
+      return this._valueSet;
+
+    return this._valueSet = (function flatten(values, set) {
+      return values.reduce(
+        (set, val) => val instanceof DedupSqlLiteral ? flatten(val._values, set) : set.add(val),
+        set
+      );
+    })(this._values, new Set());
+  }
+
+  get text() {
+    return this.getText(setToIdMap(this.collectValues()));
+  }
+
+  get values() {
+    return [...this.collectValues()];
+  }
+}
+
+export
+function SQL_dedup(parts, ...values) {
+  return new DedupSqlLiteral(parts, values);
+}
+
 export
 function join(array, separator) {
   separator = separator || ",";
