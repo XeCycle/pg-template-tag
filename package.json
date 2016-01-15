@@ -3,7 +3,10 @@
   "version": "0.0.3",
   "description": "ECMAScript 6 (2015) template tag function to write queries for node-postgres.",
   "repository": "XeCycle/pg-template-tag",
-  "files": ["*.js", "README.md"],
+  "files": [
+    "*.js",
+    "README.md"
+  ],
   "scripts": {
     "prepublish": "node build.js",
     "test": "mocha test.js"
@@ -16,7 +19,8 @@
   "author": "Carl Lei",
   "license": "SAX-PD",
   "devDependencies": {
-    "babel-core": "^5.8.22",
-    "mocha": "^2.2.5"
+    "babel-core": "6.4.0",
+    "babel-preset-es2015": "6.3.13",
+    "mocha": "2.3.4"
   }
 }
