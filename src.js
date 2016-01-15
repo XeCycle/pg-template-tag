@@ -23,6 +23,37 @@ class SqlLiteral {
       curr instanceof SqlLiteral ? curr.values : [curr]
     ), []);
   }
+  concat(...literals) {
+    // concatenate all parts arrays combining first part of each one with the
+    // last part of the previous one
+    return [this, ...literals].reduce((result, next) => {
+      let [head, ...rest] = next._parts;
+      result._parts[result._parts.length - 1] += head;
+      result._parts = result._parts.concat(rest);
+      result._values = result._values.concat(next._values);
+      return result;
+    }, new SqlLiteral([''], []));
+  }
+  split(pattern) {
+    return this._parts
+      .reduce((splitted, nextPart, i) => {
+        let splittedPart = nextPart.split(pattern);
+        if (i > 0) {
+          let head = splittedPart.shift();
+          let value = this._values[i - 1];
+          if (value instanceof SqlLiteral) {
+            let [first, ...rest] = value.split(pattern);
+            splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(first);
+            splitted = splitted.concat(rest);
+            splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(new SqlLiteral([head], []));
+          } else {
+            splitted[splitted.length - 1] = splitted[splitted.length - 1].concat(new SqlLiteral(['', head], [value]));
+          }
+        }
+        splitted = splitted.concat(splittedPart.map(part => new SqlLiteral([ part ], [])));
+        return splitted;
+      }, []);
+  }
 }
 
 export default
