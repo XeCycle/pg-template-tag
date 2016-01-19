@@ -46,6 +46,23 @@ describe("pg-template-tag", function() {
 
   });
 
+  describe("interoperation", function() {
+
+    it("decides policy by top-level tag function", function() {
+      var partA = SQL`${1}`;
+      var partB = _SQL`${1}`;
+
+      var nonReusing = SQL`A ${partA} B ${partB}`;
+      assert.equal(nonReusing.text, "A $1 B $2");
+      assert.deepEqual(nonReusing.values, [1, 1]);
+
+      var reusing = _SQL`A ${partA} B ${partB}`;
+      assert.equal(reusing.text, "A $1 B $1");
+      assert.deepEqual(reusing.values, [1]);
+    });
+
+  });
+
   describe("join", function() {
 
     it("joins SQL instances", function () {

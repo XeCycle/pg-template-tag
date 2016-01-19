@@ -1,29 +1,64 @@
 import "es6-shim";
 
-class SqlLiteral {
+class SqlLiteralBase {
   constructor(parts, values) {
     this._parts = parts;
     this._values = values;
   }
-  getText(starting=1) {
-    return this._parts.reduce((prev, curr, i) => {
-      var child = this._values[i-1];
-      var mid;
-      if (child instanceof SqlLiteral) {
-        mid = child.getText(starting);
-        starting += child.values.length;
-      }
-      else mid = "$" + (starting++);
-      return prev+mid+curr;
-    });
+}
+
+function reduceSkipOne(fn, init, array) {
+  var acc = init;
+  for (var i=1; i<array.length; ++i)
+    acc = fn(acc, array[i], i, array);
+  return acc;
+}
+
+// left fold; calls fn(prev, part/value, indexInCurrentLiteral, currentLiteralObject)
+
+// and an extra param on parts: fn(prev, part, iPart, litObj, contiguous)
+// bool contiguous is true if there is no value before this part
+function flatReduceParts(fn, init, literalObject) {
+  var {_parts, _values} = literalObject;
+
+  // tagged template string must have at least one text part
+  var first = fn(init, _parts[0], 0, literalObject, true);
+
+  return reduceSkipOne((acc, part, iPart) => {
+    var value = _values[iPart-1];
+    if (value instanceof SqlLiteralBase)
+      return fn(flatReduceParts(fn, acc, value), part, iPart, literalObject, true);
+    return fn(acc, part, iPart, literalObject, false);
+  }, first, _parts);
+}
+
+function flatReduceValues(fn, init, literalObject) {
+  return literalObject._values.reduce((prev, value, index) => {
+    if (value instanceof SqlLiteralBase)
+      return flatReduceValues(fn, prev, value);
+    return fn(prev, value, index, literalObject);
+  }, init);
+}
+
+function computeTextSimple(literal) {
+  return flatReduceParts(
+    ([i, text], part, __iPart, __litObj, cont) => {
+      if (cont)
+        return [i, text + part];
+      return [i+1, text + "$"+i + part];
+    },
+    [1, ""], literal)[1];
+}
+
+class SqlLiteral extends SqlLiteralBase {
+  constructor(parts, values) {
+    super(parts, values);
   }
   get text() {
-    return this.getText();
+    return computeTextSimple(this);
   }
   get values() {
-    return this._values.reduce((prev, curr) => prev.concat(
-      curr instanceof SqlLiteral ? curr.values : [curr]
-    ), []);
+    return flatReduceValues((prev, curr) => prev.concat([curr]), [], this);
   }
 }
 
@@ -39,38 +74,34 @@ function setToIdMap(set) {
   return map;
 }
 
-class DedupSqlLiteral {
-  constructor(parts, values) {
-    this._parts = parts;
-    this._values = values;
-  }
+function computeTextDedup(literal, valueIdMap) {
+  return flatReduceParts(
+    (text, part, iPart, {_values}, cont) => {
+      if (cont)
+        return text + part;
+      return text + "$"+valueIdMap.get(_values[iPart-1]) + part;
+    },
+    "", literal
+  );
+}
 
-  getText(valueIdMap) {
-    return this._parts.reduce((prev, curr, i) => {
-      var child = this._values[i-1];
-      var mid;
-      if (child instanceof DedupSqlLiteral) {
-        mid = child.getText(valueIdMap);
-      }
-      else mid = "$" + valueIdMap.get(child);
-      return prev+mid+curr;
-    });
+class DedupSqlLiteral extends SqlLiteralBase {
+  constructor(parts, values) {
+    super(parts, values);
   }
 
   collectValues() {
     if (this._valueSet)
       return this._valueSet;
 
-    return this._valueSet = (function flatten(values, set) {
-      return values.reduce(
-        (set, val) => val instanceof DedupSqlLiteral ? flatten(val._values, set) : set.add(val),
-        set
-      );
-    })(this._values, new Set());
+    return this._valueSet = flatReduceValues(
+      (set, value) => set.add(value),
+      new Set(), this
+    );
   }
 
   get text() {
-    return this.getText(setToIdMap(this.collectValues()));
+    return computeTextDedup(this, setToIdMap(this.collectValues()));
   }
 
   get values() {
