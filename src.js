@@ -3,25 +3,39 @@ class SqlLiteral {
     this._parts = parts;
     this._values = values;
   }
-  getText(starting=1) {
+
+  _resolve() {
+    if (this._resolved === undefined) {
+      const values = new Map();
+      const text = this._resolveFor(values);
+      this._resolved = { text, values: Array.from(values.keys()) };
+    }
+    return this._resolved;
+  }
+
+  _resolveFor(values) {
     return this._parts.reduce((prev, curr, i) => {
-      var child = this._values[i-1];
-      var mid;
+      const child = this._values[i - 1];
+      let mid;
       if (child instanceof SqlLiteral) {
-        mid = child.getText(starting);
-        starting += child.values.length;
+        mid = child._resolveFor(values);
+      } else if (values.has(child)) {
+        mid = '$' + values.get(child);
+      } else {
+        const i = values.size + 1;
+        values.set(child, i);
+        mid = '$' + i;
       }
-      else mid = "$" + (starting++);
-      return prev+mid+curr;
+      return prev + mid + curr;
     });
   }
+
   get text() {
-    return this.getText();
+    return this._resolve().text;
   }
+
   get values() {
-    return this._values.reduce((prev, curr) => prev.concat(
-      curr instanceof SqlLiteral ? curr.values : [curr]
-    ), []);
+    return this._resolve().values;
   }
 }
 
