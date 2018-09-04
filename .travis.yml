@@ -3,3 +3,5 @@ before_install:
   - npm config set strict-ssl false
 
 language: node_js
+
+node_js: 0.11.16
