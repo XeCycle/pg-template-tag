@@ -24,6 +24,19 @@ connection.query(SQL`select ${fields} from scores where time > current_date`);
 connection.query(SQL`select ${fields} from scores where score > ${minScore}`);
 ```
 
+Values are reused within the query if the piece is reused.
+
+```javascript
+var ids = SQL`${[1, 2, 3]}`;
+var query = SQL`
+  select name from a where id = any(${ids})
+  union all
+  select name from b where id = any(${ids})
+`;
+query.text;   // 'select ... where id = any($1) union all select ... where id = any($1)'
+query.values; // [[1, 2, 3]]
+```
+
 There's a `.join` function analog to `Array.prototype.join` to join together literals.
 
 ```javascript

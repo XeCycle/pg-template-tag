@@ -35,4 +35,17 @@ describe("pg-template-tag", function() {
     assert.equal(literal.text, "$1,$2,$3");
     assert.deepEqual(literal.values, [1, 'hello', [1, 2, 3]]);
   });
+
+  it("reuses values for reused child parts", function () {
+    var child = SQL`${0}`;
+    var literal = SQL`${child} ${child} ${child}`;
+    assert.equal(literal.text, '$1 $1 $1');
+    assert.deepEqual(literal.values, [0]);
+  });
+
+  it("does not reuse values if child parts aren't reused", function() {
+    var literal = SQL`${0} ${0} ${0}`;
+    assert.equal(literal.text, '$1 $2 $3');
+    assert.deepEqual(literal.values, [0, 0, 0]);
+  });
 });
