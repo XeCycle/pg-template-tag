@@ -46,7 +46,7 @@ function SQLTag(parts, ...values) {
 
 export
 function sqlLiteral(value) {
-  return { text: value, values: [] };
+  return new SqlLiteral([value]);
 }
 
 export
