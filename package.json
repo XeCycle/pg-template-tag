@@ -1,6 +1,6 @@
 {
   "name": "pg-template-tag",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ECMAScript 6 (2015) template tag function to write queries for node-postgres.",
   "repository": "XeCycle/pg-template-tag",
   "files": [
