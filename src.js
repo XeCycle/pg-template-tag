@@ -6,28 +6,30 @@ class SqlLiteral {
 
   _resolve() {
     if (this._resolved === undefined) {
-      const values = new Map();
-      const text = this._resolveFor(values);
-      this._resolved = { text, values: Array.from(values.keys()) };
+      const context = { fragments: new Map(), values: [] };
+      const text = this._resolveFor(context);
+      this._resolved = { text, values: context.values };
     }
     return this._resolved;
   }
 
-  _resolveFor(values) {
-    return this._parts.reduce((prev, curr, i) => {
-      const child = this._values[i - 1];
-      let mid;
-      if (child instanceof SqlLiteral) {
-        mid = child._resolveFor(values);
-      } else if (values.has(child)) {
-        mid = '$' + values.get(child);
-      } else {
-        const i = values.size + 1;
-        values.set(child, i);
-        mid = '$' + i;
-      }
-      return prev + mid + curr;
-    });
+  _resolveFor(context) {
+    let fragment = context.fragments.get(this);
+    if (fragment === undefined) {
+      fragment = this._parts.reduce((prev, curr, i) => {
+        const child = this._values[i - 1];
+        let mid;
+        if (child instanceof SqlLiteral) {
+          mid = child._resolveFor(context);
+        } else {
+          context.values.push(child);
+          mid = '$' + context.values.length;
+        }
+        return prev + mid + curr;
+      });
+      context.fragments.set(this, fragment);
+    }
+    return fragment;
   }
 
   get text() {
