@@ -45,6 +45,11 @@ function SQLTag(parts, ...values) {
 }
 
 export
+function sqlLiteral(value) {
+  return { text: value, values: [] };
+}
+
+export
 function join(array, separator) {
   separator = separator || ",";
   let parts = [""];
