@@ -5,8 +5,10 @@
   "repository": "XeCycle/pg-template-tag",
   "files": [
     "*.js",
+    "*.d.ts",
     "README.md"
   ],
+  "types": "index.d.ts",
   "scripts": {
     "prepublish": "node build.js",
     "test": "mocha test.js"
